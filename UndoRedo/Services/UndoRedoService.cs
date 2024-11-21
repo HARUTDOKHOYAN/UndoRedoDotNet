@@ -18,9 +18,9 @@ public class UndoRedoService : IUndoRedoService
     {
         return _isSubInvocatorActivate? _subInvokator :_mainInvokator;
     }
-    public bool IsUndoStackEmpty => GetInvokator().GetUndoCommandStack().Any();
+    public bool IsUndoStackEmpty => !GetInvokator().GetUndoCommandStack().Any();
 
-    public bool IsRedoStackEmpty => GetInvokator().GetRedoCommandStack().Any();
+    public bool IsRedoStackEmpty => !GetInvokator().GetRedoCommandStack().Any();
 
     public void AddCommand(IUndoRedoCommand command)
     {
@@ -29,24 +29,30 @@ public class UndoRedoService : IUndoRedoService
 
     public void Redo()
     {
+        if(IsRedoStackEmpty) return;
         GetInvokator().ExecuteRedoCommand();
     }
 
     public void Undo()
     {
+        if(IsUndoStackEmpty) return;
         GetInvokator().ExecuteUndoCommand();
     }
 
     public void ActivateSubInvokator()
     {
+        if(_isSubInvocatorActivate) 
+            DiactivateSubInvoketor();
         _subInvokator = new UndoRedoInvokator();
         _isSubInvocatorActivate = true;
     }
 
     public void DiactivateSubInvoketor()
     {
+        if(!_isSubInvocatorActivate)
+         return;
         _isSubInvocatorActivate = false;
-        _mainInvokator.AddCommands(_subInvokator.GetRedoCommandStack());
+        _mainInvokator.AddCommands(_subInvokator.GetUndoCommandStack());
         _subInvokator = null;
     }
 }
